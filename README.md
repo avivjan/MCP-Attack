@@ -1,45 +1,40 @@
-# Calculator MCP Server (Python)
+# MCP-Attack: Practical MCP Server Experiments
 
-A minimal Model Context Protocol (MCP) stdio server exposing four tools: add, subtract, multiply, divide.
+Warning: Run load tests only on your own environment. Do not target external servers. Ensure you have permission.
 
-## Install
+## Requirements
 
-```bash
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\\Scripts\\activate
-pip install -r requirements.txt
-```
+- Docker & Docker Compose
+- Python 3.10+ (optional for local runs)
 
-## Run (invoked by MCP clients via stdio)
+## Quick Start (Docker)
 
-Most MCP clients will spawn the server via stdio. If you want to run it manually for debugging:
+1. Build and start services + Locust UI:
+   - `docker compose up --build -d`
+   - UI at http://localhost:8089 (Host: `http://mcp_server:5000`)
+2. Run predefined experiments headless (A-E):
+   - `chmod +x experiments.sh`
+   - `./experiments.sh all` (env overrides: `DELAY_MS=... CACHE_TTL=... INTERNAL_TOUCH_MS=...`)
+3. Results: CSVs in `results/<experiment>/`. Plots will be exported by the notebook to `notebooks/outputs/`.
 
-```bash
-python /Users/avivjan/git/MCP-Attack/calculator_server.py
-```
+## Services
 
-This will wait for JSON-RPC over stdio.
+- `key_server.py` (port 5001): `DELAY_MS`, `KEY_SIZE_BYTES`
+- `internal_service.py` (port 5002): `TOUCH_MS` (or `INTERNAL_TOUCH_MS`)
+- `mcp_server.py` (port 5000): `CACHE_TTL`, `KEY_SERVER_URL`, `INTERNAL_SVC_URL`
 
-## Configure in an MCP client
+## Locust Scenarios
 
-Example configuration snippet for an MCP-aware client:
+- `--scenario`: handshake | validate | fanout | mix
+- `--kid-mode`: fixed | random, plus `--fixed-kid`
+- JSON params: `--json-bytes`, `--json-depth`; JWT size: `--jwt-bytes`; fanout: `--fanout-n`
 
-```json
-{
-  "mcpServers": {
-    "calculator": {
-      "command": "python",
-      "args": ["/Users/avivjan/git/MCP-Attack/calculator_server.py"]
-    }
-  }
-}
-```
+## Notebook
 
-## Tools
+- `docker compose exec mcp_server bash -lc "jupyter nbconvert --to notebook --execute notebooks/analysis.ipynb --output executed.ipynb"`
+- Or open locally and run all cells. Ensure `results/` contains experiment CSVs.
 
-- add(a: number, b: number) -> string result
-- subtract(a: number, b: number) -> string result
-- multiply(a: number, b: number) -> string result
-- divide(a: number, b: number) -> string result (errors on division by zero)
+## Reproducibility
 
-The server responds with text content containing the numeric result.
+- To change env vars: `DELAY_MS=200 CACHE_TTL=0 docker compose up -d --force-recreate key_server mcp_server`
+- Experiments script sets env per scenario and saves outputs in `results/`.

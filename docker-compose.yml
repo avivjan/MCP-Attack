@@ -1,0 +1,62 @@
+version: "3.8"
+
+x-app-base: &app-base
+  build: .
+  working_dir: /app
+  volumes:
+    - ./:/app
+    - ./results:/results
+  networks:
+    - mcpnet
+
+services:
+  key_server:
+    <<: *app-base
+    command: ["python", "key_server.py"]
+    environment:
+      - PORT=5001
+      - DELAY_MS=${DELAY_MS:-0}
+      - KEY_SIZE_BYTES=${KEY_SIZE_BYTES:-1024}
+    ports:
+      - "5001:5001"
+
+  internal_service:
+    <<: *app-base
+    command: ["python", "internal_service.py"]
+    environment:
+      - PORT=5002
+      - TOUCH_MS=${INTERNAL_TOUCH_MS:-10}
+    ports:
+      - "5002:5002"
+
+  mcp_server:
+    <<: *app-base
+    command: ["python", "mcp_server.py"]
+    environment:
+      - PORT=5000
+      - KEY_SERVER_URL=http://key_server:5001
+      - INTERNAL_SVC_URL=http://internal_service:5002
+      - CACHE_TTL=${CACHE_TTL:-60}
+      - METRICS_ENABLED=1
+      - METRICS_INTERVAL_MS=1000
+      - METRICS_OUT=/results/cpu_mem.csv
+      - MCP_LOG_CSV=/results/mcp_metrics.csv
+    depends_on:
+      - key_server
+      - internal_service
+    ports:
+      - "5000:5000"
+
+  locust:
+    <<: *app-base
+    command: ["locust", "-f", "locustfile.py", "--host", "http://mcp_server:5000"]
+    environment:
+      - PYTHONUNBUFFERED=1
+    ports:
+      - "8089:8089"
+    depends_on:
+      - mcp_server
+
+networks:
+  mcpnet:
+    driver: bridge

@@ -1,0 +1,4 @@
+Type,Name,Requests,Failures,Median,Average,Min,Max,90%,95%,99%,Requests/s,Failures/s
+Request,validate_2048B_d5,1000,0,12,15,5,60,25,30,60,100,0
+Request,validate_10240B_d20,800,5,40,50,15,220,100,120,200,80,0.5
+Request,validate_51200B_d50,400,20,120,150,30,800,300,360,700,40,2

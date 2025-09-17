@@ -1,0 +1,4 @@
+timestamp,endpoint,latency_ms,cache_hit
+2025-09-17T10:00:00Z,handshake,15.2,1
+2025-09-17T10:00:01Z,handshake,28.4,0
+2025-09-17T10:00:02Z,handshake,35.1,1

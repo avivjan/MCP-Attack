@@ -1,0 +1,4 @@
+Timestamp,Type,Name,Requests/s,Failures/s,50%,95%,99%,Average
+2025-09-17 10:00:00,Aggregated,All,120,0,12,30,80,15
+2025-09-17 10:00:01,Aggregated,All,140,0,11,28,75,14
+2025-09-17 10:00:02,Aggregated,All,160,0,12,35,85,16

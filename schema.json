@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MCP Validate Schema",
+  "type": "object",
+  "properties": {
+    "user": { "type": "string", "minLength": 1 },
+    "action": { "type": "string" },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "nested": {
+          "type": "object",
+          "properties": {
+            "level": { "type": "integer", "minimum": 0 },
+            "attributes": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "key": { "type": "string" },
+                  "value": { "type": ["string", "number", "boolean", "null"] }
+                },
+                "required": ["key", "value"]
+              }
+            }
+          },
+          "required": ["level", "attributes"]
+        }
+      },
+      "additionalProperties": true
+    },
+    "payload": {
+      "type": ["object", "array", "string", "number", "boolean", "null"]
+    }
+  },
+  "required": ["user", "action"],
+  "additionalProperties": true
+}
