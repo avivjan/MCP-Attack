@@ -1,0 +1,6 @@
+This experiment measured an MCP-like SSE server under increasing concurrent stream counts.
+Memory usage (peak RSS) scaled by ~1.04x from min to max N.
+Average TTFB scaled by ~9.29x across the sweep.
+Delivered events/sec per stream remained around 1.04–1.05.
+Overall, results suggest roughly linear resource growth with N for this small per-stream state.
+Next step: increase STATE_KB and/or add connection churn to probe thresholds.
