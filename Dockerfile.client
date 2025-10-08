@@ -1,0 +1,14 @@
+# Dockerfile.client
+FROM python:3.11-slim
+
+ENV PYTHONUNBUFFERED 1
+WORKDIR /app
+
+# מתקין את התלויות הנדרשות לניסוי
+RUN pip install --no-cache-dir aiohttp pandas matplotlib
+
+# מעתיק את קובץ הניסוי
+COPY experiment.py ./
+
+# CMD נדרש רק כדי שיהיה ניתן להריץ את experiment.py דרך ה-docker-compose command
+CMD ["python", "experiment.py"]

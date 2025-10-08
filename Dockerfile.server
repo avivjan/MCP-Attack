@@ -1,0 +1,24 @@
+# Dockerfile.server
+FROM python:3.11-slim
+
+ENV PYTHONUNBUFFERED 1
+WORKDIR /app
+
+# מתקין את כל התלויות כולל psutil
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && pip install --no-cache-dir \
+        fastapi \
+        "uvicorn[standard]" \
+        aiohttp \
+        psutil \
+    && apt-get purge -y build-essential && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
+
+# העתקת קבצי הקוד הנדרשים
+COPY server.py ./
+COPY stream_state.py ./
+
+EXPOSE 8000
+
+# *** הגדרת 4 Workers ליציבות מוגברת ***
+CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]

@@ -1,0 +1,9 @@
+The purpose of this load test is to examine the scalability limits of the Server-Sent Events (SSE) server (MCP) by determining the maximum number of concurrent connections (N) it can handle efficiently. 
+The core hypothesis is that a breakpoint exists: beyond a certain N, the system's performance will sharply degrade.
+
+The experiment proceeds in a sweep fashion across a range of N values (e.g., from 10 to 1100). 
+
+For each N, the client establishes all connections and maintains a constant load for 15 seconds. During this period, both client-side and server-side metrics are collected simultaneously.
+
+The primary metrics monitored are: total_events_per_sec (total system throughput) to quantify performance degradation, and resource utilization metrics like peak_cpu_percent and peak_rss_mb (memory usage). 
+These resource metrics serve to prove or disprove that resource exhaustion is the cause of the performance failure at high N values.

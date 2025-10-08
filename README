@@ -1,0 +1,7 @@
+docker-compose up --build -d
+
+curl http://localhost/metrics
+
+python experiment.py
+
+docker-compose down

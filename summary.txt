@@ -1,0 +1,7 @@
+--- MCP Load Test Summary ---
+Parameters: STATE_KB=16, HEARTBEAT_SEC=1.0, DURATION_SEC=15.0
+
+     N  avg_cpu_percent  peak_cpu_percent  avg_rss_mb  peak_rss_mb  avg_fds_open  peak_fds_open  total_streams  avg_events_per_stream  total_events_per_sec
+0   10         2.893333              21.0   49.342969    49.894531     24.000000             24             10               4.500000              3.000127
+1  100         2.626667              10.4   50.083594    50.152344     37.733333             40            100               5.760000             38.399580
+2  300         3.060000              14.8   50.668750    50.925781     42.666667             44            300               3.696667             73.942409

@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  mcp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    ports:
+      - "8080:8080"
+    environment:
+      STATE_KB: 16
+      HEARTBEAT_SEC: 1.0
+    # הגדלת מגבלת קבצים פתוחים (FDs)
+    ulimits: 
+      nofile:
+        soft: 65536
+        hard: 65536
+    # Healthcheck כדי שהקליינט וה-NGINX ידעו מתי השרת מוכן
+    healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:8080/metrics"]
+        interval: 5s
+        timeout: 2s
+        retries: 5
+
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:80"
+    # NGINX יחכה שהשרת יהיה בריא לפני שהוא מתחיל לנתב תנועה
+    depends_on:
+      mcp-server:
+        condition: service_healthy 
+    # הגדלת מגבלת קבצים פתוחים (FDs)
+    ulimits: 
+      nofile:
+        soft: 65536
+        hard: 65536
+    # Healthcheck כדי שהקליינט ידע מתי NGINX מוכן
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/metrics"]
+      interval: 5s
+      timeout: 2s
+      retries: 5
+    
+  mcp-client:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    environment:
+      SERVER_URL: http://nginx # הכתובת הפנימית בתוך רשת ה-Docker
+      STATE_KB: 16
+      HEARTBEAT_SEC: 1.0
+      DURATION_SEC: 15
+    # הקליינט יחכה ש-NGINX יעבור את בדיקת הבריאות (וזה כולל את השרת)
+    depends_on:
+      nginx:
+        condition: service_healthy
