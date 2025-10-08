@@ -9,6 +9,10 @@ from typing import Dict, Any, List, Optional
 # --- הגדרות הניסוי המותאמות ---
 SERVER_URL: str = os.environ.get("SERVER_URL", "http://host.docker.internal") 
 
+# ודא שה-URL מתחיל בפרוטוקול http://
+if not SERVER_URL.startswith("http://"):
+    SERVER_URL = "http://" + SERVER_URL
+
 # פרמטרים הניתנים לשינוי לבדיקת עומס (Stress Testing)
 STATE_KB: int = int(os.environ.get("STATE_KB", 16)) 
 HEARTBEAT_SEC: float = float(os.environ.get("HEARTBEAT_SEC", 1.0)) 
@@ -31,8 +35,7 @@ CLOSE_BASE_URL: str = f"{SERVER_URL}/mcp/close"
 async def health_check(session: aiohttp.ClientSession, url: str) -> bool:
     """בודק אם השרת מוכן ומחזיר סטטוס תקין."""
     try:
-        # שימוש ב-http://nginx במקום host.docker.internal ל-Healthcheck
-        async with session.get(f"http://nginx/metrics", timeout=5) as response: 
+        async with session.get(f"{SERVER_URL}/metrics", timeout=5) as response: 
             return response.status == 200
     except Exception:
         return False
@@ -40,11 +43,9 @@ async def health_check(session: aiohttp.ClientSession, url: str) -> bool:
 async def wait_for_server_ready(url: str, timeout: int = 20):
     """ממתין שהשרת יעלה ויחזיר קוד 200."""
     print(f"Waiting for server at {url}...")
-    async with aiohttp.ClientSession(trust_env=True) as session:
+    # **שינוי קריטי:** הוספת connector=aiohttp.TCPConnector(ssl=False)
+    async with aiohttp.ClientSession(trust_env=True, connector=aiohttp.TCPConnector(ssl=False)) as session:
         start_time = time.time()
-        # הפונקציה הזו תעבור רק אם ה-Healthcheck של Docker נכשל
-        # כיוון שהיא נועדה להיות מבוטלת על ידי depends_on: service_healthy
-        # נשנה את בדיקת ה-Healthcheck הפנימית ל-NGINX
         while time.time() - start_time < timeout:
             if await health_check(session, url):
                 print("Server is ready.")
@@ -152,7 +153,8 @@ async def run_single_sweep(n_concurrent: int, all_metrics: List[Dict[str, Any]],
     print(f"\n--- Running N={n_concurrent} ---")
     start_total_time = time.time()
     
-    async with aiohttp.ClientSession(trust_env=True) as session:
+    # **שינוי קריטי:** הוספת connector=aiohttp.TCPConnector(ssl=False)
+    async with aiohttp.ClientSession(trust_env=True, connector=aiohttp.TCPConnector(ssl=False)) as session:
         # 1. יצירת זרמים
         print(f"Attempting to create {n_concurrent} streams...")
         stream_ids: List[str] = [
@@ -279,6 +281,7 @@ async def main_run():
         df_metrics = pd.DataFrame(all_metrics)
         df_results = pd.DataFrame(all_results)
         
+        # אם הנתונים חסרים, נדפיס הודעה קריטית
         if df_metrics.empty or df_results.empty:
             print("\nError: No valid metrics or results were collected.")
             return
