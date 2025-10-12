@@ -1,0 +1,68 @@
+Change your config.json file inside the calude directory:
+
+
+# Load Testing Project (MCP Orchestration)
+
+This project consists of a simple Server-Sent Events (SSE) server and a Load Tester tool orchestrated via Anthropic's Management and Control Protocol (MCP). It is designed to test the performance of a Load Balancer (to be developed in subsequent steps).
+
+## Core File Structure
+
+| File | Description |
+| :--- | :--- |
+| **`server.py`** | The Target Server (SSE server), running on port 8000. |
+| **`load_test_mcp_server.py`** | The Load Tester tool, executed via the Claude CLI. |
+| **`config.json`** | The Claude CLI configuration file for launching the MCP tool. |
+
+---
+
+## Step 1: Installation and Dependencies
+
+Install all necessary libraries for the server and the testing tool.
+
+```bash
+pip install fastapi uvicorn psutil aiohttp pandas mcp-server
+
+"This file instructs the Claude CLI on how to launch your local MCP server. You must update the full, absolute path to the load_test_mcp_server.py file.
+
+Save the following code as config.json. (Replace the path within the args block with your actual project path):"
+
+
+"{
+    "mcpServers": {
+        "load-test": {
+            "command": "python",
+            "args": [
+                "your-path\\load_test_mcp_server.py"
+            ],
+            "env": {
+                "SERVER_URL": "http://localhost:8000",
+                "STATE_KB": "16",
+                "HEARTBEAT_SEC": "1.0"
+            }
+        }
+    },
+    "scale": 0,
+    "locale": "en-US",
+    "userThemeMode": "system"
+}"
+
+
+
+
+## Step 3: Running the System
+
+The load testing framework requires running two processes in separate terminals.
+
+### 🔴 Terminal 1: Run the Target Server (`server.py`)
+
+This process starts the SSE server that the Load Tester will target.
+
+1.  Navigate to the directory containing `server.py`.
+2.  Run the server:
+
+```bash
+uvicorn server:app --host 0.0.0.0 --port 8000
+
+claude chat --config /full/path/to/your/config.json
+
+Test your server
