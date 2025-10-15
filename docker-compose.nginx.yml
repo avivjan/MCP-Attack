@@ -1,0 +1,60 @@
+version: "3.8"
+
+services:
+  server:
+    build: .
+    working_dir: /app
+    command: ["python", "-m", "uvicorn", "server:app", "--host", "0.0.0.0", "--port", "9000"]
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./:/app
+    networks:
+      - mcpnet
+    ports:
+      - "9000:9000"
+
+  runner:
+    build: .
+    working_dir: /app
+    command: ["python", "experiment.py"]
+    environment:
+      - PYTHONUNBUFFERED=1
+      - CALL_PROXY_URL=http://nginx_client:8081
+      - STREAM_PROXY_URL=http://nginx_server:8082
+      - SERVER_BASE_URL=http://server:9000
+
+    volumes:
+      - ./:/app
+    networks:
+      - mcpnet
+    depends_on:
+      - server
+
+  nginx_client:
+    image: nginx:1.27-alpine
+    volumes:
+      - ./nginx/nginx_client.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - mcpnet
+    ports:
+      - "8081:8081"
+    depends_on:
+      - server
+
+  nginx_server:
+    image: nginx:1.27-alpine
+    volumes:
+      - ./nginx/nginx_server.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - mcpnet
+    ports:
+      - "8082:8082"
+    depends_on:
+      - server
+
+networks:
+  mcpnet:
+    driver: bridge
+
+
